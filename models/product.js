@@ -8,11 +8,9 @@ const productSchema = mongoose.Schema({
   productPrie: {
     type: Number,
   },
-  customer: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Customer",
-  },
+  quantitySold: Number,
+  quantityLeft: Number,
 });
 
-const PRODUCT = mongoose.model("product", productSchema);
+const PRODUCT = mongoose.model("Product", productSchema);
 module.exports = PRODUCT;
