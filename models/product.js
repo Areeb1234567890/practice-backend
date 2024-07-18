@@ -9,7 +9,11 @@ const productSchema = mongoose.Schema({
     type: Number,
   },
   quantitySold: Number,
-  quantityLeft: Number,
+  totalQuantity: Number,
+  outOfStock: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const PRODUCT = mongoose.model("Product", productSchema);

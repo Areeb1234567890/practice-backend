@@ -3,48 +3,43 @@ const PRODUCT = require("../models/product");
 const mongoose = require("mongoose");
 
 const registerUser = async (req, res) => {
-  const { email, name, password } = req.body;
+  const { email, name, password, gender, age } = req.body;
 
-  if (!email || !name || !password) {
+  if (!email || !name || !password || !gender || !age) {
     return res.status(400).json({
       message: "Missing fields: email, name, or password",
     });
   }
 
-  try {
-    const userExist = await USER.findOne({
-      $or: [{ userEmail: email }, { userName: name }],
-    });
+  const userExist = await USER.findOne({
+    $or: [{ userEmail: email }, { userName: name }],
+  });
 
-    if (userExist) {
-      return res.status(400).json({
-        message:
-          "An account is already available with the provided email or name",
-      });
-    }
-
-    const newUser = await USER.create({
-      userEmail: email,
-      userName: name,
-      password: password,
-    });
-
-    return res.status(201).json({
-      message: "User created successfully",
-      user: newUser,
-    });
-  } catch (error) {
-    console.error("Error registering user:", error);
-    return res.status(500).json({
-      message: "Internal server error",
+  if (userExist) {
+    return res.status(400).json({
+      message:
+        "An account is already available with the provided email or name",
     });
   }
+
+  const newUser = await USER.create({
+    userEmail: email,
+    userName: name,
+    password: password,
+    gender,
+    age,
+  });
+
+  return res.status(201).json({
+    message: "User created successfully",
+    user: newUser,
+  });
 };
 
 const addProduct = async (req, res) => {
-  const { name, category, customer, price } = req.body;
+  const { name, category, customer, price, quantity } = req.body;
 
-  if (!category || !name || !customer || !price) {
+  if (!category || !name || !customer || !price || !quantity) {
     return res.status(400).json({
       message: "Missing data",
     });
@@ -52,6 +47,7 @@ const addProduct = async (req, res) => {
     const product = await PRODUCT.create({
       productName: name,
       productPrie: price,
+      totalQuantity: quantity,
       customer,
       category,
     });
