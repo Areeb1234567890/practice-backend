@@ -8,7 +8,7 @@ const productSchema = mongoose.Schema({
   productPrie: {
     type: Number,
   },
-  quantitySold: Number,
+  quantitySold: { type: Number, default: 0 },
   totalQuantity: Number,
   outOfStock: {
     type: Boolean,

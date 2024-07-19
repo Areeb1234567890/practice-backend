@@ -12,9 +12,10 @@ const OrderSchema = mongoose.Schema({
         ref: "Product",
       },
       quantity: Number,
+      _id: false,
     },
   ],
 });
 
-const ORDER = mongoose.model("product", OrderSchema);
+const ORDER = mongoose.model("orders", OrderSchema);
 module.exports = ORDER;

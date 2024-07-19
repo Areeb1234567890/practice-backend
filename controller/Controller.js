@@ -1,5 +1,6 @@
 const USER = require("../models/customers");
 const PRODUCT = require("../models/product");
+const ORDER = require("../models/orders");
 const mongoose = require("mongoose");
 
 const registerUser = async (req, res) => {
@@ -7,7 +8,7 @@ const registerUser = async (req, res) => {
 
   if (!email || !name || !password || !gender || !age) {
     return res.status(400).json({
-      message: "Missing fields: email, name, or password",
+      message: "Missing fields",
     });
   }
 
@@ -37,26 +38,71 @@ const registerUser = async (req, res) => {
 };
 
 const addProduct = async (req, res) => {
-  const { name, category, customer, price, quantity } = req.body;
+  const { name, category, price, quantity } = req.body;
 
-  if (!category || !name || !customer || !price || !quantity) {
+  if (!category || !name || !price || !quantity) {
     return res.status(400).json({
       message: "Missing data",
     });
-  } else {
-    const product = await PRODUCT.create({
-      productName: name,
-      productPrie: price,
-      totalQuantity: quantity,
-      customer,
-      category,
-    });
+  }
 
-    return res.status(201).json({
-      message: "Product created successfully",
-      product: product,
+  const productExist = await PRODUCT.findOne({
+    productName: name,
+  });
+
+  if (productExist) {
+    return res.status(400).json({
+      message: "Product already exist",
     });
   }
+
+  const product = await PRODUCT.create({
+    productName: name,
+    productPrie: price,
+    totalQuantity: quantity,
+    category,
+  });
+
+  return res.status(201).json({
+    message: "Product created successfully",
+    product: product,
+  });
+};
+
+const orderProduct = async (req, res) => {
+  const { userId } = req.params;
+  const { products } = req.body;
+
+  if (!products || products.length === 0) {
+    return res.status(400).json({
+      message: "No product Selected",
+    });
+  }
+
+  for (const Product of products) {
+    await PRODUCT.findOneAndUpdate(
+      {
+        _id: Product.productDetail,
+        totalQuantity: { $gte: Product.quantity },
+      },
+      {
+        $inc: {
+          totalQuantity: -Product.quantity,
+          quantitySold: Product.quantity,
+        },
+      },
+      { new: true }
+    );
+  }
+
+  await ORDER.create({
+    Customer: userId,
+    Products: products,
+  });
+
+  return res.status(201).json({
+    message: "Product orders successfully",
+  });
 };
 
 const getProduct = async (req, res) => {
@@ -98,4 +144,4 @@ const getProduct = async (req, res) => {
   });
 };
 
-module.exports = { registerUser, addProduct, getProduct };
+module.exports = { registerUser, addProduct, getProduct, orderProduct };
