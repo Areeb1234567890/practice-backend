@@ -90,8 +90,7 @@ const orderProduct = async (req, res) => {
           totalQuantity: -Product.quantity,
           quantitySold: Product.quantity,
         },
-      },
-      { new: true }
+      }
     );
   }
 
