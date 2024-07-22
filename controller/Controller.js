@@ -104,43 +104,41 @@ const orderProduct = async (req, res) => {
   });
 };
 
-const getProduct = async (req, res) => {
-  const { productId } = req.params;
-
-  const product = await PRODUCT.aggregate([
+const getOrders = async (req, res) => {
+  const orderProductfromLookup = await ORDER.aggregate([
     {
-      $match: { _id: new mongoose.Types.ObjectId(productId) },
+      $lookup: {
+        from: "users",
+        localField: "Customer",
+        foreignField: "_id",
+        as: "Customer",
+      },
     },
     {
       $lookup: {
-        from: "customers",
-        localField: "customer",
+        from: "products",
+        localField: "Products.productDetail",
         foreignField: "_id",
-        as: "customerDetails",
-      },
-    },
-    {
-      $addFields: {
-        customer: { $arrayElemAt: ["$customerDetails", 0] },
-      },
-    },
-    {
-      $project: {
-        customerDetails: 0,
+        as: "Products",
       },
     },
   ]);
 
-  if (!product || product.length === 0) {
-    return res.status(404).json({
-      message: "Product not found",
+  const orders = await ORDER.find()
+    .populate({
+      path: "Customer",
+      select: "-password -__v -_id",
+    })
+    .populate({
+      path: "Products.productDetail",
+      select: "productName productPrie -_id",
     });
-  }
 
-  return res.status(200).json({
-    message: "Product found",
-    product: product,
+  return res.status(201).json({
+    message: "Orders fetch successfully",
+    // orders,
+    orderProductfromLookup,
   });
 };
 
-module.exports = { registerUser, addProduct, getProduct, orderProduct };
+module.exports = { registerUser, addProduct, getOrders, orderProduct };
