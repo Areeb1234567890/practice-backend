@@ -124,15 +124,15 @@ const getOrders = async (req, res) => {
     },
   ]);
 
-  const orders = await ORDER.find()
-    .populate({
-      path: "Customer",
-      select: "-password -__v -_id",
-    })
-    .populate({
-      path: "Products.productDetail",
-      select: "productName productPrie -_id",
-    });
+  // const orders = await ORDER.find()
+  //   .populate({
+  //     path: "Customer",
+  //     select: "-password -__v -_id",
+  //   })
+  //   .populate({
+  //     path: "Products.productDetail",
+  //     select: "productName productPrie -_id",
+  //   });
 
   return res.status(201).json({
     message: "Orders fetch successfully",
@@ -141,4 +141,31 @@ const getOrders = async (req, res) => {
   });
 };
 
-module.exports = { registerUser, addProduct, getOrders, orderProduct };
+const getProduct = async (req, res) => {
+  const currentPage = Number(req?.query?.currentPage) || 1;
+  const itemPerPage = Number(req?.query?.itemPerPage) || 5;
+  const totalPages = Math.ceil((await PRODUCT.countDocuments()) / itemPerPage);
+  const totalItems = await PRODUCT.countDocuments();
+
+  const products = await PRODUCT.find()
+    .lean()
+    .skip((currentPage - 1) * itemPerPage)
+    .limit(itemPerPage);
+
+  return res.status(201).json({
+    message: "product retrived successfully",
+    products,
+    lastPage: totalPages,
+    totalItems,
+    currentPage,
+    itemPerPage,
+  });
+};
+
+module.exports = {
+  registerUser,
+  addProduct,
+  getOrders,
+  orderProduct,
+  getProduct,
+};
