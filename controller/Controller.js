@@ -145,6 +145,10 @@ const getProduct = async (req, res) => {
   const searchText = req?.query?.searchText;
   const currentPage = Number(req?.query?.currentPage) || 1;
   const itemPerPage = Number(req?.query?.itemPerPage) || 5;
+  const endDate = req?.query?.endDate ? new Date(req.query.endDate) : null;
+  const startDate = req?.query?.startDate
+    ? new Date(req.query.startDate)
+    : null;
   const searchQuery =
     searchText && searchText !== "undefined" && searchText !== "null"
       ? searchText
@@ -158,6 +162,20 @@ const getProduct = async (req, res) => {
       { productCategory: { $regex: new RegExp(searchQuery, "i") } },
     ],
   });
+
+  if (startDate && endDate) {
+    query.$and.push({
+      createdAt: { $gte: startDate, $lte: endDate },
+    });
+  } else if (startDate) {
+    query.$and.push({
+      createdAt: { $gte: startDate },
+    });
+  } else if (endDate) {
+    query.$and.push({
+      createdAt: { $lte: endDate },
+    });
+  }
 
   const totalPages = Math.ceil(
     (await PRODUCT.countDocuments(query)) / itemPerPage
