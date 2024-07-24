@@ -60,7 +60,7 @@ const addProduct = async (req, res) => {
     productName: name,
     productPrie: price,
     totalQuantity: quantity,
-    category,
+    productCategory: category,
   });
 
   return res.status(201).json({
@@ -142,12 +142,28 @@ const getOrders = async (req, res) => {
 };
 
 const getProduct = async (req, res) => {
+  const searchText = req?.query?.searchText;
   const currentPage = Number(req?.query?.currentPage) || 1;
   const itemPerPage = Number(req?.query?.itemPerPage) || 5;
-  const totalPages = Math.ceil((await PRODUCT.countDocuments()) / itemPerPage);
-  const totalItems = await PRODUCT.countDocuments();
+  const searchQuery =
+    searchText && searchText !== "undefined" && searchText !== "null"
+      ? searchText
+      : "";
+  const query = {
+    $and: [],
+  };
+  query.$and.push({
+    $or: [
+      { productName: { $regex: new RegExp(searchQuery, "i") } },
+      { productCategory: { $regex: new RegExp(searchQuery, "i") } },
+    ],
+  });
 
-  const products = await PRODUCT.find()
+  const totalPages = Math.ceil(
+    (await PRODUCT.countDocuments(query)) / itemPerPage
+  );
+  const totalItems = await PRODUCT.countDocuments(query);
+  const products = await PRODUCT.find(query)
     .lean()
     .skip((currentPage - 1) * itemPerPage)
     .limit(itemPerPage);
